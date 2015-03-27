@@ -7,14 +7,28 @@ var {
   View,
 } = React;
 
+var dispatcher = require('dispatcher');
+
+var SummonersStore = require('../stores/summoners');
+
 var WelcomeScreen = React.createClass({
   displayName: 'WelcomeScreen',
 
   getInitialState: function () {
     return {
       summoner: '',
-      loading: false
+      loading: false,
+      found: null
     };
+  },
+
+  componentDidMount: function () {
+    SummonersStore.on('summoner:load:complete', this.handleLoadComplete, this);
+    SummonersStore.on('summoner:load:error', this.handleLoadError, this);
+  },
+
+  componentDidUnmount: function () {
+    SummonersStore.off(null, null, this);
   },
 
   render: function () {
@@ -35,15 +49,26 @@ var WelcomeScreen = React.createClass({
           placeholder="Summoner name..."
           onFocus={this.props.onFocus}
           style={styles.searchBarInput}
-        />
+          />
+        {this._renderFound()}
         <ActivityIndicatorIOS
           animating={this.state.loading}
           style={styles.spinner}
-        />
-        <View style={styles.searchBar}>
-          
-        </View>
+          />
       </View>
+    );
+  },
+
+  _renderFound: function () {
+    var found = this.state.found;
+    if (!found) {
+      return null;
+    }
+
+    return (
+      <Text style={styles.instructions}>
+        {[found.name, found.id].join(' ')}
+      </Text>
     );
   },
 
@@ -53,12 +78,25 @@ var WelcomeScreen = React.createClass({
       loading: true
     });
 
-    setTimeout(function () {
-      this.setState({
-        loading: false
-      });
-    }.bind(this), 5000);
+    dispatcher.dispatch('summoner:load', this.state.summoner);
   },
+
+  handleLoadComplete: function () {
+    var found = SummonersStore.getByName(this.state.summoner);
+    console.log('load:complete', found);
+
+    this.setState({
+      loading: false,
+      found: found,
+    });
+  },
+
+  handleLoadError: function () {
+    this.setState({
+      loading: false,
+      error: 'There was a problem finding that summoner',
+    });
+  }
 });
 
 var styles = StyleSheet.create({

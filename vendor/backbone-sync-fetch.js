@@ -21,7 +21,7 @@
   var params = {
     method: type
   };
-  
+
   if (!options.url) {
     options.url = _.result(model, 'url') || new Error('Must provide a url for model');
   }
@@ -33,29 +33,30 @@
     }
 
     params.headers = options.headers;
-    params.body = JSON.stringify(options.body || model.toJSON(options));  
+    params.body = JSON.stringify(options.body || model.toJSON(options));
   }
 
-  var xhr = options.xhr = fetch(options.url, params)
-    .then(function (response) {
-      return response.json();
-    })
-    .catch(function (err) {
-      if (options.error) {
-        options.error.apply(this, err, xhr);
-      }
-    })
-    .then(function (responseData) {
-      if (options.success) {
-        options.success.apply(this, [responseData]);
-      }
+  return new Promise(function (resolve, reject) {
+    var xhr = options.xhr = fetch(options.url, params)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (responseData) {
+        if (options.success) {
+          options.success.apply(this, [responseData]);
+        }
 
-      return responseData;
-    });
+        resolve(responseData);
+      }, function (err) {
+        if (options.error) {
+          options.error.apply(this, err, xhr);
+        }
 
-  model.trigger('request', model, xhr, options);
+        reject(err);
+      });
 
-  return xhr;
+    model.trigger('request', model, xhr, options);
+  });
  };
 
  module.exports = Backbone.sync;
