@@ -2,11 +2,10 @@
  * @providesModule backbone-sync-fetch
  */
 
- var Backbone = require('backbone');
- var _ = require('lodash');
- var fetch = require('fetch');
+var _ = require('lodash');
+var fetch = require('fetch');
 
- var methodMap = {
+var methodMap = {
   'create': 'POST',
   'update': 'PUT',
   'patch':  'PATCH',
@@ -14,7 +13,12 @@
   'read':   'GET'
 };
 
- Backbone.sync = function backboneFetchSync(method, model, options) {
+var throwUrlError = function () {
+  var err = new Error('Must provide a url for sync');
+  throw err;
+};
+
+function backboneFetchSync(method, model, options) {
   options = options || {};
   var type = methodMap[method];
 
@@ -23,7 +27,7 @@
   };
 
   if (!options.url) {
-    options.url = _.result(model, 'url') || new Error('Must provide a url for model');
+    options.url = _.result(model, 'url') || throwUrlError();
   }
 
   if (type !== 'GET') {
@@ -57,6 +61,9 @@
 
     model.trigger('request', model, xhr, options);
   });
- };
+ }
 
- module.exports = Backbone.sync;
+ module.exports = function (Backbone) {
+   Backbone.originalSync = Backbone.sync;
+   Backbone.sync = backboneFetchSync;
+ };

@@ -7,6 +7,10 @@ var {
   View,
 } = React;
 
+var moment = require('moment');
+
+var now = moment().format();
+
 var dispatcher = require('dispatcher');
 
 var SummonersStore = require('../stores/summoners');
