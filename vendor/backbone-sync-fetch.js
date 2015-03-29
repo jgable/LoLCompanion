@@ -1,7 +1,3 @@
-/**
- * @providesModule backbone-sync-fetch
- */
-
 var _ = require('lodash');
 var fetch = require('fetch');
 

@@ -7,10 +7,6 @@ var {
   View,
 } = React;
 
-var moment = require('moment');
-
-var now = moment().format();
-
 var dispatcher = require('dispatcher');
 
 var SummonersStore = require('../stores/summoners');
@@ -99,6 +95,7 @@ var WelcomeScreen = React.createClass({
     this.setState({
       loading: false,
       error: 'There was a problem finding that summoner',
+      found: null
     });
   }
 });

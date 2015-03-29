@@ -2,7 +2,7 @@
  * @providesModule dispatcher
  */
 
-var _ = require('lodash-node');
+var _ = require('lodash');
 var Flux = require('flux');
 var FluxDispatcher = Flux.Dispatcher;
 

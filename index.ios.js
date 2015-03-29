@@ -6,6 +6,8 @@
 'use strict';
 var React = require('react-native');
 
+var $sideEffects = require('./vendor/backbone-init');
+
 var {
   AppRegistry,
   NavigatorIOS,
