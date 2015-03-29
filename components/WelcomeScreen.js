@@ -1,4 +1,5 @@
 var React = require('react-native');
+var Button = require('react-native-button');
 var {
   ActivityIndicatorIOS,
   StyleSheet,
@@ -34,27 +35,27 @@ var WelcomeScreen = React.createClass({
   render: function () {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to LoLCompanion!
-        </Text>
         <Text style={styles.instructions}>
-          Enter the name of your summoner to continue
+          Search for a summoner to follow
         </Text>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!this.state.loading}
-          onSubmitEditing={this.onNameSubmit}
-          onChangeText={(text) => this.setState({summoner: text})}
-          placeholder="Summoner name..."
-          onFocus={this.props.onFocus}
-          style={styles.searchBarInput}
-          />
-        {this._renderFound()}
+        <View style={styles.searchBar}>
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!this.state.loading}
+            onSubmitEditing={this.handleNameSubmit}
+            onChangeText={(text) => this.setState({summoner: text})}
+            placeholder="Summoner name..."
+            onFocus={this.props.onFocus}
+            style={styles.searchBarInput}
+            />
+          <Button style={styles.searchBarButton} onPress={this.handleNameSubmit}>Search!</Button>
+        </View>
         <ActivityIndicatorIOS
           animating={this.state.loading}
           style={styles.spinner}
           />
+        {this._renderFound()}
       </View>
     );
   },
@@ -72,7 +73,7 @@ var WelcomeScreen = React.createClass({
     );
   },
 
-  onNameSubmit: function () {
+  handleNameSubmit: function () {
     console.log('name submit', this.state.summoner);
     this.setState({
       loading: true
@@ -103,9 +104,8 @@ var WelcomeScreen = React.createClass({
 var styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'white',
+    paddingTop: 80
   },
   welcome: {
     fontSize: 20,
@@ -118,25 +118,26 @@ var styles = StyleSheet.create({
     marginBottom: 10
   },
   searchBar: {
-    marginTop: 64,
-    padding: 3,
-    paddingLeft: 8,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    height: 30,
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   searchBarInput: {
-    fontSize: 15,
+    paddingLeft: 10,
+    flex: 0.6,
     height: 30,
-    alignSelf: 'center',
-    textAlign: 'center',
-    margin: 20,
-    width: 100
+    fontSize: 15,
   },
-  separator: {
-    height: 1,
-    backgroundColor: '#eeeeee',
+  searchBarButton: {
+    flex: 0.2,
+    marginLeft: 10
   },
   spinner: {
+    alignSelf: 'center',
+    marginVertical: 10,
     width: 30,
   },
 });
