@@ -15,12 +15,6 @@ var Summoner = React.createClass({
     summoner: React.PropTypes.object.isRequired
   },
 
-  // NOTE: This prevents a weird bug with the TouchableHighlight needing a native child but
-  // swallowing the invariant error
-  setNativeProps: function () {
-    this.refs.container.setNativeProps.apply(this.refs.container, arguments);
-  },
-
   render: function () {
     return (
       <View ref="container" style={styles.container}>
