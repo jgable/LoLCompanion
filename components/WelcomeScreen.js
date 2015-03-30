@@ -2,15 +2,20 @@ var React = require('react-native');
 var Button = require('react-native-button');
 var {
   ActivityIndicatorIOS,
+  Image,
   StyleSheet,
   Text,
   TextInput,
+  TouchableHighlight,
   View,
 } = React;
 
 var dispatcher = require('dispatcher');
 
 var SummonersStore = require('../stores/summoners');
+var Summoner = require('./Summoner');
+
+var ChooseScreen = require('./ChooseScreen');
 
 var WelcomeScreen = React.createClass({
   displayName: 'WelcomeScreen',
@@ -35,9 +40,6 @@ var WelcomeScreen = React.createClass({
   render: function () {
     return (
       <View style={styles.container}>
-        <Text style={styles.instructions}>
-          Search for a summoner to follow
-        </Text>
         <View style={styles.searchBar}>
           <TextInput
             autoCapitalize="none"
@@ -55,28 +57,34 @@ var WelcomeScreen = React.createClass({
           animating={this.state.loading}
           style={styles.spinner}
           />
-        {this._renderFound()}
+        <View style={styles.searchResults}>
+          {this._renderFound()}
+        </View>
       </View>
     );
   },
 
   _renderFound: function () {
     var found = this.state.found;
-    if (!found) {
+    if (this.state.loading || (!found && !this.state.searched)) {
       return null;
+    } else if (!found && this.state.error) {
+      return <Text style={styles.notFound}>No summoner found with that name</Text>;
     }
-
+    
     return (
-      <Text style={styles.instructions}>
-        {[found.name, found.id].join(' ')}
-      </Text>
+      <TouchableHighlight onPress={this.goToChooseScreen} underlayColor="white">
+        <Summoner summoner={found} />
+      </TouchableHighlight>
     );
   },
 
   handleNameSubmit: function () {
     console.log('name submit', this.state.summoner);
     this.setState({
-      loading: true
+      loading: true,
+      searched: false,
+      found: null
     });
 
     dispatcher.dispatch('summoner:load', this.state.summoner);
@@ -88,6 +96,7 @@ var WelcomeScreen = React.createClass({
 
     this.setState({
       loading: false,
+      searched: true,
       found: found,
     });
   },
@@ -95,8 +104,25 @@ var WelcomeScreen = React.createClass({
   handleLoadError: function () {
     this.setState({
       loading: false,
+      searched: true,
       error: 'There was a problem finding that summoner',
       found: null
+    });
+  },
+
+  goToChooseScreen: function () {
+    var found = this.state.found;
+
+    if (!found) {
+      return;
+    }
+
+    this.props.navigator.push({
+      title: found.name,
+      component: ChooseScreen,
+      passProps: {
+        summonerId: found.id
+      }
     });
   }
 });
@@ -113,6 +139,12 @@ var styles = StyleSheet.create({
     margin: 10,
   },
   instructions: {
+    textAlign: 'center',
+    color: '#333333',
+    marginBottom: 10
+  },
+  notFound: {
+    flex: 1,
     textAlign: 'center',
     color: '#333333',
     marginBottom: 10
@@ -140,6 +172,9 @@ var styles = StyleSheet.create({
     marginVertical: 10,
     width: 30,
   },
+  searchResults: {
+    alignItems: 'center'
+  }
 });
 
 module.exports = WelcomeScreen;
