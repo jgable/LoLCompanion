@@ -3,6 +3,7 @@ var _ = require('lodash');
 var Button = require('react-native-button');
 var {
   ActivityIndicatorIOS,
+  AlertIOS,
   Image,
   StyleSheet,
   Text,
@@ -14,6 +15,10 @@ var dispatcher = require('dispatcher');
 
 var SummonersStore = require('../stores/summoners');
 var Summoner = require('./Summoner');
+
+var GameStore = require('../stores/games');
+
+var CurrentGameScreen = require('./CurrentGameScreen');
 
 var ChooseScreen = React.createClass({
   displayName: 'ChooseScreen',
@@ -28,6 +33,31 @@ var ChooseScreen = React.createClass({
     };
   },
 
+  componentDidMount: function () {
+    GameStore.on('games:load:current:complete', function (game) {
+      this.props.navigator.push({
+        title: 'Current Game',
+        component: CurrentGameScreen,
+        passProps: {
+          summonerId: this.state.summonerId,
+          gameId: game.id
+        }
+      });
+    }, this);
+
+    GameStore.on('games:load:current:error', function (err, resp) {
+      if (resp.status === 404) {
+        AlertIOS.alert('Not Found', 'Looks like you are not in a game yet');
+      } else {
+        AlertIOS.alert('Sorry', 'There was a problem loading the current game');
+      }
+    }, this);
+  },
+
+  componentWillUnmount: function () {
+    GameStore.off(null, null, this);
+  },
+
   render: function () {
     return (
       <View style={styles.container}>
@@ -38,7 +68,9 @@ var ChooseScreen = React.createClass({
     );
   },
 
-  goToCurrentGame: _.noop,
+  goToCurrentGame: function () {
+    dispatcher.dispatch('games:load:current', this.props.summonerId);
+  },
 
   goToPastGames: _.noop
 });

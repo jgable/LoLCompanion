@@ -51,16 +51,18 @@ var SummonersStore = Store.extend({
       .then(function () {
         this.add(model);
         this.trigger('summoner:load:complete', model);
-      }.bind(this), function () {
-        this.trigger('summoner:load:error', name);
-      }.bind(this));
+      }.bind(this), (err) => this.trigger('summoner:load:error', err, name));
   },
 
   getByName: function (name) {
     return this.getSingleWhere({
       name: name
     });
-  }
+  },
+
+  getAll: function (ids) {
+    return ids.map((id) => this.get(id));
+  },
 });
 
 module.exports = new SummonersStore();

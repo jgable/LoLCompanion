@@ -37,22 +37,24 @@ function backboneFetchSync(method, model, options) {
   }
 
   return new Promise(function (resolve, reject) {
+    var origResponse;
     var xhr = options.xhr = fetch(options.url, params)
       .then(function (response) {
+        origResponse = response;
         return response.json();
       })
       .then(function (responseData) {
         if (options.success) {
-          options.success.apply(this, [responseData]);
+          options.success.call(this, responseData, origResponse, options);
         }
 
-        resolve(responseData);
+        resolve({ responseData, origResponse, options });
       }, function (err) {
         if (options.error) {
-          options.error.apply(this, err, xhr);
+          options.error.call(this, err, origResponse, options);
         }
 
-        reject(err);
+        reject({ err, origResponse, options });
       });
 
     model.trigger('request', model, xhr, options);
