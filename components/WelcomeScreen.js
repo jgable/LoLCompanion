@@ -2,6 +2,7 @@ var React = require('react-native');
 var Button = require('react-native-button');
 var {
   ActivityIndicatorIOS,
+  AlertIOS,
   Image,
   StyleSheet,
   Text,
@@ -24,7 +25,6 @@ var WelcomeScreen = React.createClass({
     return {
       summoner: '',
       loading: false,
-      found: null
     };
   },
 
@@ -57,33 +57,13 @@ var WelcomeScreen = React.createClass({
           animating={this.state.loading}
           style={styles.spinner}
           />
-        <View style={styles.searchResults}>
-          {this._renderFound()}
-        </View>
       </View>
     );
   },
 
-  _renderFound: function () {
-    var found = this.state.found;
-    if (this.state.loading || (!found && !this.state.searched)) {
-      return null;
-    } else if (!found && this.state.error) {
-      return <Text style={styles.notFound}>No summoner found with that name</Text>;
-    }
-    
-    return (
-      <TouchableHighlight onPress={this.goToChooseScreen} underlayColor="white">
-        <Summoner summoner={found} />
-      </TouchableHighlight>
-    );
-  },
-
   handleNameSubmit: function () {
-    console.log('name submit', this.state.summoner);
     this.setState({
       loading: true,
-      searched: false,
       found: null
     });
 
@@ -92,30 +72,14 @@ var WelcomeScreen = React.createClass({
 
   handleLoadComplete: function () {
     var found = SummonersStore.getByName(this.state.summoner);
-    console.log('load:complete', found);
-
-    this.setState({
-      loading: false,
-      searched: true,
-      found: found,
-    });
-  },
-
-  handleLoadError: function () {
-    this.setState({
-      loading: false,
-      searched: true,
-      error: 'There was a problem finding that summoner',
-      found: null
-    });
-  },
-
-  goToChooseScreen: function () {
-    var found = this.state.found;
 
     if (!found) {
-      return;
+      AlertIOS.alert('Not Found', 'Unable to find that summoner');
     }
+
+    this.setState({
+      loading: false
+    });
 
     this.props.navigator.push({
       title: found.name,
@@ -123,6 +87,20 @@ var WelcomeScreen = React.createClass({
       passProps: {
         summonerId: found.id
       }
+    });
+  },
+
+  handleLoadError: function (errInfo) {
+    var origResponse = errInfo && errInfo.origResponse;
+
+    if (origResponse && origResponse.status === 404) {
+      AlertIOS.alert('Not Found', 'Unable to find that summoner');
+    } else {
+      AlertIOS.alert('Sorry', 'There was an error fetching data.');
+    }
+
+    this.setState({
+      loading: false
     });
   }
 });
