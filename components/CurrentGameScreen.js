@@ -10,7 +10,7 @@ var {
   View,
 } = React;
 
-var dispatcher = require('dispatcher');
+var dispatcher = require('../core/dispatcher');
 
 var SummonersStore = require('../stores/summoners');
 var Summoner = require('./Summoner');

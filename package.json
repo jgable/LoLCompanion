@@ -6,10 +6,9 @@
     "start": "node_modules/react-native/packager/packager.sh"
   },
   "dependencies": {
-    "backbone": "^1.1.2",
-    "flux": "^2.0.1",
     "lodash": "^3.6.0",
     "react-native": "^0.2.1",
-    "react-native-button": "^1.0.0"
+    "react-native-button": "^1.0.0",
+    "react-native-fluxbone": "^0.1.0"
   }
 }

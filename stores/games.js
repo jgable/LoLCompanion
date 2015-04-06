@@ -1,6 +1,6 @@
 var _ = require('lodash');
-var Model = require('model');
-var Store = require('store');
+var Fluxbone = require('react-native-fluxbone');
+var { Model, Store } = Fluxbone;
 
 var config = require('../config');
 var { region, apiKey } = config;
