@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "lodash": "^3.6.0",
-    "react-native": "^0.2.1",
+    "react-native": "^0.3.4",
     "react-native-button": "^1.0.0",
     "react-native-fluxbone": "^0.1.0"
   }
