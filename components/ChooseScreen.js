@@ -5,6 +5,7 @@ var {
   ActivityIndicatorIOS,
   AlertIOS,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,6 +21,57 @@ var GameStore = require('../stores/games');
 
 var CurrentGameScreen = require('./CurrentGameScreen');
 
+var CurrentGameDetails = React.createClass({
+  displayName: 'CurrentGameDetails',
+
+  getInitialState: function () {
+    var game = GameStore.getSingle(this.props.currentGameId);
+    var me = _.findWhere(game.participants, { summonerId: this.props.summoner.id });
+    var myTeam = game.participants.filter((p) => p.teamId === me.teamId && p !== me);
+    var otherTeam = game.participants.filter((p) => p.teamId !== me.teamId);
+    
+    return { game, me, myTeam, otherTeam };
+  },
+
+  render: function () {
+    return (
+      <View>
+        {this.renderEnemyTeam()}
+      </View>
+    );
+  },
+
+  renderEnemyTeam: function () {
+    var players = this.state.otherTeam.map((p) => 
+      <View style={styles.teamSummoner}>
+        <Summoner summoner={SummonersStore.getSingle(p.summonerId)} />
+      </View>
+    );
+    
+    return (
+      <View style={styles.teamContainer}>
+        <Text style={styles.teamHeading}>Enemy Team</Text>
+        {players}
+      </View>
+    );
+  },
+
+  renderMyTeam: function () {
+    var players = this.state.myTeam.map((p) => 
+      <View style={styles.teamSummoner}>
+        <Summoner summoner={SummonersStore.getSingle(p.summonerId)} />
+      </View>
+    );
+    
+    return (
+      <View style={styles.teamContainer}>
+        <Text>My Team</Text>
+        {players}
+      </View>
+    );
+  }
+});
+
 var ChooseScreen = React.createClass({
   displayName: 'ChooseScreen',
 
@@ -29,60 +81,92 @@ var ChooseScreen = React.createClass({
 
   getInitialState: function () {
     return {
-      summoner: SummonersStore.getSingle(this.props.summonerId)
+      summoner: SummonersStore.getSingle(this.props.summonerId),
+      loaded: false,
+      currentGameId: false
     };
   },
 
   componentDidMount: function () {
-    GameStore.on('games:load:current:complete', function (game) {
-      this.props.navigator.push({
-        title: 'Current Game',
-        component: CurrentGameScreen,
-        passProps: {
-          summonerId: this.state.summonerId,
-          gameId: game.id
-        }
+    GameStore.on('games:current:changed', function (currentGameId) {
+      this.setState({
+        loaded: true,
+        currentGameId: currentGameId
       });
     }, this);
 
-    GameStore.on('games:load:current:error', function (err, resp) {
-      if (resp.status === 404) {
-        AlertIOS.alert('Not Found', 'Looks like you are not in a game yet');
-      } else {
-        AlertIOS.alert('Sorry', 'There was a problem loading the current game');
-      }
-    }, this);
+    GameStore.pollForCurrentGame(this.state.summoner.id);
   },
 
   componentWillUnmount: function () {
+    GameStore.stopPollingCurrentGame();
     GameStore.off(null, null, this);
   },
 
   render: function () {
     return (
-      <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.container}>
         <Summoner summoner={this.state.summoner} />
-        <Button style={styles.currentGameButton} onPress={this.goToCurrentGame}>Current Game</Button>
-        <Button onPress={this.goToPastGames}>Past Games</Button>
-      </View>
+        {this.renderCurrentGame()}
+      </ScrollView>
+    );
+  },
+
+  renderCurrentGame: function () {
+    if (!this.state.loaded) {
+      return <Text style={styles.disabledButton}>Checking for current game...</Text>;
+    }
+    
+    if (!this.state.currentGameId) {
+      return <Text style={styles.disabledButton}>No Current Game</Text>;
+    }
+
+    return (
+      <CurrentGameDetails {...this.state} />
     );
   },
 
   goToCurrentGame: function () {
-    dispatcher.dispatch('games:load:current', this.props.summonerId);
-  },
-
-  goToPastGames: _.noop
+    if (!this.state.currentGameId) {
+      return;
+    }
+    
+    this.props.navigator.push({
+      title: 'Current Game',
+      component: CurrentGameScreen,
+      passProps: {
+        summonerId: this.state.summonerId,
+        gameId: this.state.currentGameId
+      }
+    });
+  }
 });
 
 var styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    paddingTop: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
-    paddingTop: 80,
     alignItems: 'center'
   },
   currentGameButton: {
+    marginTop: 20
+  },
+  disabledButton: {
+    marginTop: 20,
+    opacity: 0.8,
+    color: 'gray'
+  },
+  teamContainer: {
+    marginTop: 20,
+  },
+  teamHeading: {
+    fontWeight: 'bold'
+  },
+  teamSummoner: {
     marginTop: 20
   }
 });
